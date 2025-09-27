@@ -1,0 +1,40 @@
+# SQL Copilot 项目依赖包
+# 使用国内镜像源安装: pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple/
+
+# 核心依赖
+dashscope==1.22.1                    # 阿里云DashScope API
+pandas==2.2.3                        # 数据处理
+SQLAlchemy==2.0.23                   # 数据库ORM
+openai==1.77.0                       # OpenAI API兼容接口
+
+# 大语言模型相关
+transformers==4.49.0                 # Hugging Face Transformers
+torch>=2.0.0                         # PyTorch深度学习框架
+modelscope>=1.9.0                    # 魔搭社区模型库
+
+# 数据处理和工具
+Faker==20.1.0                        # 数据生成工具
+langchain==0.3.25                    # LangChain框架
+Requests==2.32.3                     # HTTP请求库
+zhipuai==2.1.5.20250421             # 智谱AI API
+
+# 数据库连接器
+mysql-connector-python>=8.0.0       # MySQL连接器
+pymysql>=1.0.0                       # MySQL纯Python驱动
+
+# 可选依赖（用于本地模型）
+# accelerate>=0.20.0                  # 模型加速
+# bitsandbytes>=0.41.0                # 量化工具
+# peft>=0.4.0                         # 参数高效微调
+
+# 开发和测试工具
+jupyter>=1.0.0                       # Jupyter Notebook
+ipykernel>=6.0.0                     # Jupyter内核
+matplotlib>=3.5.0                    # 数据可视化
+seaborn>=0.11.0                      # 统计图表
+plotly>=5.0.0                        # 交互式图表
+
+# 工具库
+tqdm>=4.64.0                         # 进度条
+colorama>=0.4.0                      # 彩色输出
+python-dotenv>=1.0.0                 # 环境变量管理

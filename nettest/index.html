@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>简单注册登录系统</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="auth-container">
+            <h1>欢迎使用</h1>
+            
+            <!-- 登录表单 -->
+            <div id="loginForm" class="form-container">
+                <h2>登录</h2>
+                <form id="login">
+                    <div class="form-group">
+                        <label for="loginUsername">用户名:</label>
+                        <input type="text" id="loginUsername" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">密码:</label>
+                        <input type="password" id="loginPassword" required>
+                    </div>
+                    <button type="submit">登录</button>
+                </form>
+                <p>还没有账号？ <a href="#" onclick="showRegister()">立即注册</a></p>
+            </div>
+
+            <!-- 注册表单 -->
+            <div id="registerForm" class="form-container" style="display: none;">
+                <h2>注册</h2>
+                <form id="register">
+                    <div class="form-group">
+                        <label for="registerUsername">用户名:</label>
+                        <input type="text" id="registerUsername" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="registerPassword">密码:</label>
+                        <input type="password" id="registerPassword" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmPassword">确认密码:</label>
+                        <input type="password" id="confirmPassword" required>
+                    </div>
+                    <button type="submit">注册</button>
+                </form>
+                <p>已有账号？ <a href="#" onclick="showLogin()">立即登录</a></p>
+            </div>
+
+            <!-- 用户信息显示 -->
+            <div id="userInfo" class="user-info" style="display: none;">
+                <h2>欢迎回来！</h2>
+                <p id="userUsername"></p>
+                <button onclick="logout()">退出登录</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 消息提示 -->
+    <div id="message" class="message"></div>
+
+    <!-- 引入 Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

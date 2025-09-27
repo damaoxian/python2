@@ -1,0 +1,165 @@
+CREATE TABLE users (
+    userId int(11) NOT NULL auto_increment,
+    accountId varchar(255) NOT NULL,
+    name varchar(255) NOT NULL,
+    sex int(11),
+    exitTime bigint(20) NOT NULL DEFAULT 0,
+    getGoldCoinNumber int(11) NOT NULL DEFAULT 3,
+    goldCoin int(11) NOT NULL DEFAULT 10000,
+    luckyWheelTimes int(11) DEFAULT 1,
+    roomId varchar(255),
+    seatIndex smallint(6) DEFAULT -1,
+    coins decimal(38,2) DEFAULT 100000000.00,
+    roomCard int(11) NOT NULL DEFAULT 21,
+    hasOpenedBankAccount smallint(6) DEFAULT 0,
+    bankBalance decimal(38,2) unsigned DEFAULT 0.00,
+    password varchar(255),
+    isBusiness smallint(6) NOT NULL DEFAULT 0,
+    isRobot smallint(6) DEFAULT 0,
+    headImage varchar(255),
+    secondHeadImage smallint(6) NOT NULL DEFAULT 1,
+    gameType varchar(10) NOT NULL,
+    telephone varchar(32),
+    accountStatus int(11) NOT NULL DEFAULT 0,
+    signature varchar(255),
+    createTime timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    loginIp varchar(256),
+    uuid varchar(256),
+    lastLoginIp varchar(50),
+    regUuid varchar(50),
+    remark varchar(255),
+    registerIp varchar(128),
+    gameStatus tinyint(4) NOT NULL DEFAULT 0,
+    latestVip int(11),
+    mailCoins bigint(20) NOT NULL DEFAULT 0,
+    bindEquipment tinyint(4) DEFAULT 0,
+    changeNameCount smallint(6) DEFAULT 0,
+    fenFaType tinyint(4) NOT NULL DEFAULT 0,
+    PRIMARY KEY (userId)
+);
+
+CREATE TABLE room (
+    uuid varchar(20) NOT NULL,
+    roomId varchar(64) NOT NULL,
+    houseOwnerId varchar(8),
+    time bigint(20) NOT NULL,
+    gameServerId varchar(64),
+    type varchar(64),
+    numOfTurns int(11) NOT NULL DEFAULT 0,
+    numberPeople int(11) NOT NULL DEFAULT 0,
+    nextButton int(11),
+    userList varchar(2048),
+    score decimal(10,2) DEFAULT 0.00,
+    teaHouseId int(11) NOT NULL DEFAULT 0,
+    roomRules varchar(2048),
+    houseOwnerIncome double DEFAULT 0,
+    PRIMARY KEY (uuid)
+);
+
+CREATE TABLE tea_house (
+    indexId int(11) NOT NULL auto_increment,
+    id varchar(8) NOT NULL,
+    teaHouseName varchar(512) NOT NULL,
+    announce varchar(512),
+    presidentId varchar(255) NOT NULL,
+    presidentName varchar(255) NOT NULL,
+    teaHouseLevel int(11) NOT NULL DEFAULT 0,
+    maxMemberNumber int(11) NOT NULL DEFAULT 500,
+    adminList varchar(512),
+    roomCardNumber int(11) NOT NULL DEFAULT 0,
+    totalMatchNumber int(11) NOT NULL DEFAULT 0,
+    allowFreeEnter int(11) NOT NULL DEFAULT 0,
+    allowShowSpecialNiu int(11) NOT NULL DEFAULT 0,
+    status int(11) NOT NULL DEFAULT 0,
+    customeCreateRoomRules varchar(1024),
+    thMoney decimal(10,2) NOT NULL DEFAULT 0.00,
+    PRIMARY KEY (indexId)
+);
+
+CREATE TABLE tea_house_member (
+    id int(11) NOT NULL auto_increment,
+    teaHouseId varchar(8) NOT NULL,
+    userId varchar(255) NOT NULL,
+    userName varchar(255) NOT NULL,
+    userLevel int(11) NOT NULL,
+    userTitle int(11) NOT NULL DEFAULT 4,
+    creditLevel int(11) NOT NULL DEFAULT 0,
+    state int(11) NOT NULL,
+    requestType int(11) NOT NULL DEFAULT 0,
+    moneyNumber decimal(10,2) NOT NULL DEFAULT 0.00,
+    canWithdrawCash int(11) NOT NULL DEFAULT 0,
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE z_financial_game_records_20250920 (
+    id int(11) NOT NULL auto_increment,
+    userId int(11) NOT NULL,
+    roomId int(11) NOT NULL,
+    roomUuid varchar(50) NOT NULL,
+    gameType varchar(50) NOT NULL,
+    gameIndex int(11) NOT NULL,
+    roomLevel tinyint(4) NOT NULL,
+    beforeCoins bigint(20),
+    winCoins int(11) NOT NULL,
+    totalCoins bigint(20) NOT NULL,
+    backCoins bigint(20),
+    isRobot tinyint(4) NOT NULL,
+    createTime timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    clientType varchar(50),
+    detail text,
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE user_backpack (
+    id int(11) NOT NULL auto_increment,
+    userId int(11) NOT NULL,
+    itemId int(11) NOT NULL,
+    itemNumber int(11) DEFAULT 0,
+    effectiveTime varchar(255),
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE mail (
+    id int(11) NOT NULL auto_increment,
+    userId int(11) NOT NULL,
+    fromUserId int(11) NOT NULL,
+    fromUserName varchar(64),
+    time int(11) NOT NULL DEFAULT 0,
+    timeStr timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    title varchar(256) DEFAULT '',
+    content varchar(512),
+    attachContent varchar(512),
+    status smallint(6) NOT NULL DEFAULT 0,
+    sendUserDataChange varchar(128),
+    receiveUserDataChange varchar(128),
+    serviceCharge decimal(10,2) NOT NULL DEFAULT 0.00,
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE shop (
+    id int(11) NOT NULL auto_increment,
+    itemId int(11) NOT NULL,
+    number int(11) NOT NULL DEFAULT 1,
+    bindProxyPlayerNumber int(11) NOT NULL DEFAULT 1,
+    price int(11) NOT NULL DEFAULT 10,
+    discount float DEFAULT 1,
+    description varchar(255),
+    midSpr varchar(255),
+    showColumn smallint(6) DEFAULT 2,
+    specificTag smallint(6) DEFAULT -1,
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE vip_level_config (
+    vipLevel int(11) NOT NULL,
+    useSafeBox int(11) NOT NULL,
+    showHeadPic int(11) NOT NULL,
+    freeSafeBoxTime int(11) NOT NULL,
+    additionalRoleGradeExp float DEFAULT 1,
+    additionalGoldCoins float DEFAULT 1,
+    nameColour int(11) NOT NULL,
+    reliefPaymentNumber int(11) NOT NULL,
+    signInGold int(11) NOT NULL,
+    boxNumber int(11) NOT NULL,
+    PRIMARY KEY (vipLevel)
+);

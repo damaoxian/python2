@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>点点小游戏</title>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      background: #f5f5f5;
+      font-family: Arial, sans-serif;
+      position: relative;
+    }
+    
+    /* 用户信息显示区域 */
+    #userInfo {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      border: 2px solid #4caf50;
+      min-width: 200px;
+      z-index: 1000;
+    }
+    
+    #userInfo h3 {
+      margin: 0 0 10px 0;
+      color: #333;
+      font-size: 1.1em;
+    }
+    
+    #userInfo p {
+      margin: 5px 0;
+      color: #666;
+      font-size: 0.9em;
+    }
+    
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      margin-right: 10px;
+      float: left;
+    }
+    
+    .user-details {
+      margin-left: 50px;
+    }
+    
+    h1 {
+      font-size: 2em;
+      margin-bottom: 20px;
+    }
+    #score {
+      font-size: 1.5em;
+      margin: 20px 0;
+    }
+    button {
+      font-size: 1.2em;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      background: #4caf50;
+      color: white;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    button:hover {
+      background: #45a049;
+    }
+  </style>
+</head>
+<body>
+  <!-- 用户信息显示区域 -->
+  <div id="userInfo" style="display: none;">
+    <h3>👤 用户信息</h3>
+    <div class="user-details">
+      <p><strong>姓名:</strong> <span id="userName">加载中...</span></p>
+      <p><strong>用户名:</strong> <span id="userUsername">加载中...</span></p>
+      <p><strong>用户ID:</strong> <span id="userId">加载中...</span></p>
+    </div>
+  </div>
+
+  <h1>点点小游戏 🎮</h1>
+  <div id="score">分数：<span id="scoreValue">加载中...</span></div>
+  <button id="clickBtn">点我加分</button>
+  <div id="loading" style="display: none; color: #666; margin-top: 10px;">正在保存分数...</div>
+
+  <script>
+    let score = 0;
+    let userId = null;
+    const scoreValueEl = document.getElementById("scoreValue");
+    const button = document.getElementById("clickBtn");
+    const loadingEl = document.getElementById("loading");
+
+    // API 基础 URL（根据实际部署环境选择）
+    // 本地开发环境
+    // const API_BASE_URL = 'http://localhost:5000/api';
+    
+    // 局域网访问（当前配置）
+    const API_BASE_URL = 'http://192.168.10.78:5000/api';
+    
+    // 公网访问（需要端口转发）
+    // const API_BASE_URL = 'http://188.253.121.62:5000/api';
+    
+    // 生产环境（推荐）
+    // const API_BASE_URL = 'https://your-domain.com/api';
+
+    // 获取用户信息
+    function getUserInfo() {
+      // 从 URL 参数中获取用户信息（Telegram 会传递这些参数）
+      const urlParams = new URLSearchParams(window.location.search);
+      const user = urlParams.get('user');
+      
+      if (user) {
+        try {
+          // 解码URL参数
+          const decodedUser = decodeURIComponent(user);
+          console.log('原始用户数据:', decodedUser);
+          
+          // 解析JSON数据
+          const userData = JSON.parse(decodedUser);
+          console.log('解析后的用户数据:', userData);
+          
+          // 保存用户ID
+          userId = userData.id;
+          
+          displayUserInfo(userData);
+          
+          // 加载用户分数
+          loadUserScore();
+        } catch (e) {
+          console.log('无法解析用户信息:', e);
+          console.log('原始数据:', user);
+          // 如果没有用户信息，显示默认信息
+          displayDefaultUserInfo();
+          loadDefaultScore();
+        }
+      } else {
+        // 如果没有用户信息，显示默认信息
+        displayDefaultUserInfo();
+        loadDefaultScore();
+      }
+    }
+
+    // 显示用户信息
+    function displayUserInfo(userData) {
+      const userInfoDiv = document.getElementById("userInfo");
+      const userName = document.getElementById("userName");
+      const userUsername = document.getElementById("userUsername");
+      const userId = document.getElementById("userId");
+
+      console.log('显示用户信息:', userData);
+
+      // 显示姓名
+      if (userData.first_name) {
+        const fullName = userData.first_name + (userData.last_name ? ' ' + userData.last_name : '');
+        userName.textContent = fullName;
+        console.log('用户姓名:', fullName);
+      } else {
+        userName.textContent = '未知';
+      }
+
+      // 显示用户名
+      if (userData.username && userData.username !== '') {
+        userUsername.textContent = '@' + userData.username;
+        console.log('用户名:', userData.username);
+      } else {
+        userUsername.textContent = '无';
+      }
+
+      // 显示用户ID
+      if (userData.id) {
+        userId.textContent = userData.id;
+        console.log('用户ID:', userData.id);
+      } else {
+        userId.textContent = '未知';
+      }
+
+      userInfoDiv.style.display = 'block';
+      console.log('用户信息显示完成');
+    }
+
+    // 显示默认用户信息
+    function displayDefaultUserInfo() {
+      const userInfoDiv = document.getElementById("userInfo");
+      const userName = document.getElementById("userName");
+      const userUsername = document.getElementById("userUsername");
+      const userId = document.getElementById("userId");
+
+      userName.textContent = 'Telegram 用户';
+      userUsername.textContent = '从 Telegram 启动';
+      userId.textContent = '未知';
+
+      userInfoDiv.style.display = 'block';
+    }
+
+    // 加载用户分数
+    async function loadUserScore() {
+      if (!userId) {
+        console.log('没有用户ID，无法加载分数');
+        loadDefaultScore();
+        return;
+      }
+
+      try {
+        console.log(`📊 加载用户 ${userId} 的分数`);
+        const response = await fetch(`${API_BASE_URL}/score/${userId}`);
+        const data = await response.json();
+        
+        if (data.success) {
+          score = data.score;
+          scoreValueEl.textContent = score;
+          console.log(`✅ 用户分数加载成功: ${score}`);
+        } else {
+          console.log('❌ 加载分数失败，使用默认分数');
+          loadDefaultScore();
+        }
+      } catch (error) {
+        console.log('❌ 加载分数出错:', error);
+        loadDefaultScore();
+      }
+    }
+
+    // 加载默认分数
+    function loadDefaultScore() {
+      score = 0;
+      scoreValueEl.textContent = score;
+      console.log('📊 使用默认分数: 0');
+    }
+
+    // 保存用户分数
+    async function saveUserScore() {
+      if (!userId) {
+        console.log('没有用户ID，无法保存分数');
+        return;
+      }
+
+      try {
+        loadingEl.style.display = 'block';
+        console.log(`💾 保存用户 ${userId} 的分数: ${score}`);
+        
+        const response = await fetch(`${API_BASE_URL}/score/${userId}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ score: score })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          console.log(`✅ 分数保存成功: ${score}`);
+        } else {
+          console.log('❌ 分数保存失败:', data.error);
+        }
+      } catch (error) {
+        console.log('❌ 保存分数出错:', error);
+      } finally {
+        loadingEl.style.display = 'none';
+      }
+    }
+
+    // 页面加载时获取用户信息
+    document.addEventListener('DOMContentLoaded', function() {
+      getUserInfo();
+    });
+
+    button.addEventListener("click", async () => {
+      score++;
+      scoreValueEl.textContent = score;
+      
+      // 保存分数到数据库
+      await saveUserScore();
+    });
+  </script>
+</body>
+</html>
