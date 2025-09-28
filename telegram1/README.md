@@ -1,6 +1,6 @@
 # Telegram 游戏机器人项目
 
-这是一个完整的 Telegram 游戏机器人项目，包含机器人后端、数据库集成和网页小游戏。
+这是一个简化的 Telegram 游戏机器人项目，支持游戏跳转和用户信息传递。
 
 ## 📁 项目结构
 
@@ -8,11 +8,7 @@
 telegram1/
 ├── bot.py                 # Telegram 机器人主程序
 ├── client.py              # Telegram 客户端连接脚本
-├── database_simple.py     # 数据库操作模块（简化版）
-├── database_schema.sql    # 数据库表结构
-├── score_api.py           # 分数 API 服务器
 ├── config.py              # 项目配置文件
-├── index.html             # 网页小游戏
 ├── requirements.txt       # Python 依赖包
 └── README.md              # 项目说明文档
 ```
@@ -21,63 +17,21 @@ telegram1/
 
 ### 1. Telegram 游戏机器人 (bot.py)
 
-基于 python-telegram-bot 库的完整游戏机器人，支持用户数据存储和游戏集成。
+基于 python-telegram-bot 库的简化游戏机器人，支持游戏跳转和用户信息传递。
 
 **主要功能：**
 - `/start` 命令：发送欢迎消息
 - `/game` 命令：启动小游戏
 - 游戏回调处理：记录用户信息并传递到游戏
-- 数据库集成：自动保存用户数据
 - 详细日志记录：便于调试和监控
 
 **核心特性：**
 - 🎮 游戏集成：支持 Telegram 小游戏
-- 💾 数据存储：自动保存用户信息到 Supabase
-- 🔗 URL 参数传递：将用户信息传递给游戏
+- 🔐 initData 模式：使用 Telegram 官方推荐的 initData 方式传递用户信息
 - 📝 详细日志：完整的操作日志记录
-- 🛡️ 错误处理：数据库失败时继续执行
+- 👤 用户信息：通过 initData 安全传递用户信息
 
-### 2. 数据库模块 (database_simple.py)
-
-简化的数据库操作模块，使用 HTTP 请求与 Supabase 交互。
-
-**主要功能：**
-- 用户数据保存和查询
-- 重复用户检查
-- 获取所有用户列表
-- 错误处理和日志记录
-
-**数据库表结构：**
-- `users` 表：存储用户ID和创建时间
-- `scores` 表：存储用户分数和游戏数据
-- 支持行级安全策略 (RLS)
-- 自动处理重复用户
-- 分数查询和更新功能
-
-### 3. 分数 API 服务器 (score_api.py)
-
-基于 Flask 的 RESTful API 服务器，处理游戏分数操作。
-
-**主要功能：**
-- 📊 查询用户分数：`GET /api/score/{user_id}`
-- 💾 更新用户分数：`POST /api/score/{user_id}`
-- 🔍 健康检查：`GET /api/health`
-- 📝 详细日志记录
-- 🛡️ 错误处理
-
-### 4. 网页小游戏 (index.html)
-
-响应式点击计分游戏，支持用户信息显示和分数持久化。
-
-**游戏特性：**
-- 🎯 点击计分：简单的点击按钮增加分数
-- 👤 用户信息显示：显示从 Telegram 传递的用户信息
-- 💾 分数持久化：自动保存和加载用户分数
-- 📱 响应式设计：适配各种设备
-- 🎨 现代界面：简洁美观的设计
-- ⏳ 加载状态：显示分数保存进度
-
-### 5. Telegram 客户端 (client.py)
+### 2. Telegram 客户端 (client.py)
 
 基于 Telethon 库的 Telegram 客户端，用于测试和开发。
 
@@ -126,8 +80,6 @@ python bot.py
 ## 📦 依赖说明
 
 - `python-telegram-bot`: Telegram 机器人库
-- `flask`: Web API 框架（用于分数 API 服务器）
-- `httpx`: HTTP 客户端库（用于 Supabase 交互）
 - `telethon`: Telegram 客户端库（可选，用于测试）
 
 ## ⚙️ 详细配置
@@ -147,47 +99,31 @@ python bot.py
    GAME_URL = "你的游戏部署地址"
    ```
 
-### 2. Supabase 数据库设置
+### 2. 游戏配置
 
-1. 在 [Supabase](https://supabase.com) 中创建新项目
-2. 在 SQL 编辑器中执行 `database_schema.sql` 中的 SQL 语句
-3. 获取项目的 URL 和 API Key
-4. 在 `config.py` 中配置：
+1. 在 `config.py` 中配置游戏 URL：
    ```python
-   SUPABASE_URL = "你的Supabase项目URL"
-   SUPABASE_KEY = "你的Supabase API Key"
+   GAME_URL = "https://your-game-url.com"
    ```
-
-### 3. 游戏部署
-
-1. 将 `index.html` 上传到静态网站托管服务（推荐 Netlify、Vercel）
-2. 确保使用 HTTPS 协议
-3. 在 `config.py` 中更新 `GAME_URL`
+2. 确保游戏 URL 使用 HTTPS 协议
+3. 游戏页面可以接收用户信息参数
 
 ## 🎯 工作流程
 
 1. **用户发送 `/start`** → 机器人发送欢迎消息
 2. **用户发送 `/game`** → 机器人发送游戏按钮
 3. **用户点击游戏按钮** → 触发游戏回调处理
-4. **记录用户信息** → 保存到 Supabase 数据库
-5. **构建游戏URL** → 包含用户信息参数
-6. **用户开始游戏** → 在网页中显示用户信息
-7. **加载用户分数** → 从数据库查询用户历史分数
-8. **用户点击计分** → 实时更新分数并保存到数据库
+4. **记录用户信息** → 记录到日志
+5. **返回游戏URL** → 使用 initData 模式，不直接传递用户信息
+6. **用户开始游戏** → Telegram 自动通过 initData 传递用户信息到游戏
 
 ## 📝 注意事项
 
 1. **API 密钥安全**：不要将真实的 API 密钥提交到公共仓库
 2. **HTTPS 要求**：Telegram 游戏必须使用 HTTPS 协议
-3. **数据库权限**：确保 Supabase RLS 策略允许匿名用户插入数据
-4. **网络连接**：如果遇到连接问题，可能需要配置代理
+3. **网络连接**：如果遇到连接问题，可能需要配置代理
 
 ## 🐛 常见问题
-
-### 数据库连接问题
-- 检查 Supabase URL 和 API Key 是否正确
-- 确认数据库表已创建
-- 检查 RLS 策略设置
 
 ### 机器人无响应
 - 检查 BOT_TOKEN 是否正确
@@ -198,6 +134,48 @@ python bot.py
 - 确认游戏 URL 使用 HTTPS
 - 检查游戏页面是否正常访问
 - 验证游戏短名称是否正确
+
+### 用户信息传递问题
+- 检查游戏页面是否能正确解析 initData
+- 确认 initData 验证逻辑正确
+- 验证时间戳是否在有效期内
+
+## 🔐 initData 模式说明
+
+### 什么是 initData？
+initData 是 Telegram 官方推荐的安全方式，用于在 WebApp 和机器人之间传递用户信息。相比直接通过 URL 参数传递，initData 模式具有以下优势：
+
+1. **安全性**：使用 HMAC-SHA256 签名验证，防止数据篡改
+2. **时效性**：数据具有 24 小时的有效期
+3. **完整性**：Telegram 自动处理用户信息的传递
+
+### 在游戏页面中使用 initData
+
+游戏页面可以通过以下方式获取用户信息：
+
+```javascript
+// 获取 initData
+const initData = new URLSearchParams(window.location.search).get('tgWebAppData');
+
+// 验证 initData（可选，但推荐）
+// 使用机器人提供的验证函数验证数据完整性
+
+// 解析用户信息
+const urlParams = new URLSearchParams(initData);
+const userData = JSON.parse(urlParams.get('user'));
+```
+
+### initData 验证
+
+机器人提供了 `validate_init_data()` 函数来验证 initData 的有效性：
+
+```python
+# 验证 initData
+is_valid = validate_init_data(init_data_string, bot_token)
+
+# 解析用户信息
+user_info = parse_init_data(init_data_string)
+```
 
 ## 📄 许可证
 

@@ -1,6 +1,10 @@
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes, CallbackQueryHandler
 import logging
+import hashlib
+import hmac
+import time
+import urllib.parse
 from config import (
     BOT_TOKEN, 
     GAME_SHORT_NAME, 
@@ -8,13 +12,90 @@ from config import (
     LOG_CONFIG, 
     BOT_MESSAGES
 )
-from database_simple import db_manager
 
 # 开启日志（方便调试）
 logging.basicConfig(
     format=LOG_CONFIG['format'], 
     level=getattr(logging, LOG_CONFIG['level'])
 )
+
+# ====== initData 验证函数 ======
+def validate_init_data(init_data: str, bot_token: str) -> bool:
+    """
+    验证 Telegram WebApp initData 的有效性
+    
+    Args:
+        init_data: 从 Telegram WebApp 传递的 initData 字符串
+        bot_token: 机器人的 Token
+    
+    Returns:
+        bool: 验证是否通过
+    """
+    try:
+        # 解析 initData
+        parsed_data = urllib.parse.parse_qs(init_data)
+        
+        # 提取 hash 和 auth_date
+        hash_value = parsed_data.get('hash', [None])[0]
+        auth_date = parsed_data.get('auth_date', [None])[0]
+        
+        if not hash_value or not auth_date:
+            return False
+        
+        # 检查时间戳是否在有效期内（24小时）
+        current_time = int(time.time())
+        auth_timestamp = int(auth_date)
+        if current_time - auth_timestamp > 86400:  # 24小时 = 86400秒
+            return False
+        
+        # 移除 hash 参数，准备验证
+        data_check_string = init_data.replace(f'&hash={hash_value}', '').replace(f'hash={hash_value}&', '').replace(f'hash={hash_value}', '')
+        
+        # 创建验证密钥
+        secret_key = hmac.new(
+            "WebAppData".encode(),
+            bot_token.encode(),
+            hashlib.sha256
+        ).digest()
+        
+        # 计算期望的 hash
+        expected_hash = hmac.new(
+            secret_key,
+            data_check_string.encode(),
+            hashlib.sha256
+        ).hexdigest()
+        
+        # 比较 hash
+        return hmac.compare_digest(hash_value, expected_hash)
+        
+    except Exception as e:
+        logging.getLogger(__name__).error(f"initData 验证失败: {e}")
+        return False
+
+def parse_init_data(init_data: str) -> dict:
+    """
+    解析 initData 中的用户信息
+    
+    Args:
+        init_data: 从 Telegram WebApp 传递的 initData 字符串
+    
+    Returns:
+        dict: 解析后的用户信息
+    """
+    try:
+        parsed_data = urllib.parse.parse_qs(init_data)
+        user_data = {}
+        
+        # 提取用户信息
+        if 'user' in parsed_data:
+            import json
+            user_json = parsed_data['user'][0]
+            user_data = json.loads(user_json)
+        
+        return user_data
+    except Exception as e:
+        logging.getLogger(__name__).error(f"解析 initData 失败: {e}")
+        return {}
 
 # ====== 2. 命令处理函数 ======
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -91,36 +172,22 @@ async def game_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     logger.info("=" * 50)
     
-    # 准备用户信息（简化版，只保存用户ID）
-    user_info = {
-        'id': user.id
-    }
+    # 记录用户信息到日志（用于调试）
+    logger.info("📝 用户信息已记录到日志")
     
-    # 保存用户信息到数据库
-    logger.info("💾 正在保存用户信息到数据库...")
-    save_success = db_manager.save_user(user_info)
+    # 使用 initData 模式：不直接传递用户信息，而是让 Telegram 处理
+    # Telegram 会自动将用户信息通过 initData 传递给游戏
+    logger.info("🔐 使用 initData 模式传递用户信息")
+    logger.info(f"🔗 游戏URL: {GAME_URL}")
     
-    if save_success:
-        logger.info("✅ 用户信息已保存到数据库")
-    else:
-        logger.warning("⚠️ 用户信息保存失败，但继续执行")
-    
-    # 构建包含用户信息的游戏URL
-    import urllib.parse
-    
-    # 将用户信息编码为URL参数
-    user_info_json = urllib.parse.quote(str(user_info).replace("'", '"'))
-    game_url_with_user = f"{GAME_URL}?user={user_info_json}"
-    
-    logger.info(f"🔗 游戏URL (含用户信息): {game_url_with_user}")
-    
-    # 玩家点击游戏入口时，返回包含用户信息的URL
+    # 玩家点击游戏入口时，返回游戏URL（不包含用户信息参数）
+    # Telegram 会自动通过 initData 将用户信息传递给游戏
     await context.bot.answer_callback_query(
         callback_query_id=query.id,
-        url=game_url_with_user
+        url=GAME_URL
     )
     
-    logger.info("✅ 游戏URL已发送给玩家")
+    logger.info("✅ 游戏URL已发送给玩家（使用 initData 模式）")
     logger.info("=" * 50)
 
 # ====== 3. 主函数 ======
