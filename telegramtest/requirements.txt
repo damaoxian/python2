@@ -1,0 +1,4 @@
+# Telegram 相关依赖
+telethon>=1.34.0
+python-telegram-bot>=20.0
+
