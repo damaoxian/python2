@@ -13,7 +13,7 @@ from config import (
     BOT_MESSAGES
 )
 
-# 开启日志（方便调试）
+# 开启日志  （方便调试）
 logging.basicConfig(
     format=LOG_CONFIG['format'], 
     level=getattr(logging, LOG_CONFIG['level'])
