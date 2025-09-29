@@ -1,9 +1,6 @@
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes, CallbackQueryHandler
 import logging
-import hashlib
-import hmac
-import time
 import urllib.parse
 from config import (
     BOT_TOKEN, 
@@ -19,83 +16,86 @@ logging.basicConfig(
     level=getattr(logging, LOG_CONFIG['level'])
 )
 
-# ====== initData 验证函数 ======
-def validate_init_data(init_data: str, bot_token: str) -> bool:
-    """
-    验证 Telegram WebApp initData 的有效性
-    
-    Args:
-        init_data: 从 Telegram WebApp 传递的 initData 字符串
-        bot_token: 机器人的 Token
-    
-    Returns:
-        bool: 验证是否通过
-    """
-    try:
-        # 解析 initData
-        parsed_data = urllib.parse.parse_qs(init_data)
-        
-        # 提取 hash 和 auth_date
-        hash_value = parsed_data.get('hash', [None])[0]
-        auth_date = parsed_data.get('auth_date', [None])[0]
-        
-        if not hash_value or not auth_date:
-            return False
-        
-        # 检查时间戳是否在有效期内（24小时）
-        current_time = int(time.time())
-        auth_timestamp = int(auth_date)
-        if current_time - auth_timestamp > 86400:  # 24小时 = 86400秒
-            return False
-        
-        # 移除 hash 参数，准备验证
-        data_check_string = init_data.replace(f'&hash={hash_value}', '').replace(f'hash={hash_value}&', '').replace(f'hash={hash_value}', '')
-        
-        # 创建验证密钥
-        secret_key = hmac.new(
-            "WebAppData".encode(),
-            bot_token.encode(),
-            hashlib.sha256
-        ).digest()
-        
-        # 计算期望的 hash
-        expected_hash = hmac.new(
-            secret_key,
-            data_check_string.encode(),
-            hashlib.sha256
-        ).hexdigest()
-        
-        # 比较 hash
-        return hmac.compare_digest(hash_value, expected_hash)
-        
-    except Exception as e:
-        logging.getLogger(__name__).error(f"initData 验证失败: {e}")
-        return False
+# ====== initData 验证函数（已禁用） ======
+# 注意：initData 验证功能已被禁用，现在直接通过URL参数传递用户信息
+# 如果需要重新启用，请取消注释以下函数
 
-def parse_init_data(init_data: str) -> dict:
-    """
-    解析 initData 中的用户信息
-    
-    Args:
-        init_data: 从 Telegram WebApp 传递的 initData 字符串
-    
-    Returns:
-        dict: 解析后的用户信息
-    """
-    try:
-        parsed_data = urllib.parse.parse_qs(init_data)
-        user_data = {}
-        
-        # 提取用户信息
-        if 'user' in parsed_data:
-            import json
-            user_json = parsed_data['user'][0]
-            user_data = json.loads(user_json)
-        
-        return user_data
-    except Exception as e:
-        logging.getLogger(__name__).error(f"解析 initData 失败: {e}")
-        return {}
+# def validate_init_data(init_data: str, bot_token: str) -> bool:
+#     """
+#     验证 Telegram WebApp initData 的有效性
+#     
+#     Args:
+#         init_data: 从 Telegram WebApp 传递的 initData 字符串
+#         bot_token: 机器人的 Token
+#     
+#     Returns:
+#         bool: 验证是否通过
+#     """
+#     try:
+#         # 解析 initData
+#         parsed_data = urllib.parse.parse_qs(init_data)
+#         
+#         # 提取 hash 和 auth_date
+#         hash_value = parsed_data.get('hash', [None])[0]
+#         auth_date = parsed_data.get('auth_date', [None])[0]
+#         
+#         if not hash_value or not auth_date:
+#             return False
+#         
+#         # 检查时间戳是否在有效期内（24小时）
+#         current_time = int(time.time())
+#         auth_timestamp = int(auth_date)
+#         if current_time - auth_timestamp > 86400:  # 24小时 = 86400秒
+#             return False
+#         
+#         # 移除 hash 参数，准备验证
+#         data_check_string = init_data.replace(f'&hash={hash_value}', '').replace(f'hash={hash_value}&', '').replace(f'hash={hash_value}', '')
+#         
+#         # 创建验证密钥
+#         secret_key = hmac.new(
+#             "WebAppData".encode(),
+#             bot_token.encode(),
+#             hashlib.sha256
+#         ).digest()
+#         
+#         # 计算期望的 hash
+#         expected_hash = hmac.new(
+#             secret_key,
+#             data_check_string.encode(),
+#             hashlib.sha256
+#         ).hexdigest()
+#         
+#         # 比较 hash
+#         return hmac.compare_digest(hash_value, expected_hash)
+#         
+#     except Exception as e:
+#         logging.getLogger(__name__).error(f"initData 验证失败: {e}")
+#         return False
+
+# def parse_init_data(init_data: str) -> dict:
+#     """
+#     解析 initData 中的用户信息
+#     
+#     Args:
+#         init_data: 从 Telegram WebApp 传递的 initData 字符串
+#     
+#     Returns:
+#         dict: 解析后的用户信息
+#     """
+#     try:
+#         parsed_data = urllib.parse.parse_qs(init_data)
+#         user_data = {}
+#         
+#         # 提取用户信息
+#         if 'user' in parsed_data:
+#             import json
+#             user_json = parsed_data['user'][0]
+#             user_data = json.loads(user_json)
+#         
+#         return user_data
+#     except Exception as e:
+#         logging.getLogger(__name__).error(f"解析 initData 失败: {e}")
+#         return {}
 
 # ====== 2. 命令处理函数 ======
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -175,19 +175,38 @@ async def game_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # 记录用户信息到日志（用于调试）
     logger.info("📝 用户信息已记录到日志")
     
-    # 使用 initData 模式：不直接传递用户信息，而是让 Telegram 处理
-    # Telegram 会自动将用户信息通过 initData 传递给游戏
-    logger.info("🔐 使用 initData 模式传递用户信息")
-    logger.info(f"🔗 游戏URL: {GAME_URL}")
+    # 构建带有用户信息的游戏URL
+    # 获取用户姓名（处理可能为None的情况）
+    user_name = user.first_name or ""
+    if user.last_name:
+        user_name += f" {user.last_name}"
+    user_name = user_name.strip()
     
-    # 玩家点击游戏入口时，返回游戏URL（不包含用户信息参数）
-    # Telegram 会自动通过 initData 将用户信息传递给游戏
+    # 如果用户名为空，使用用户ID作为默认名称
+    if not user_name:
+        user_name = f"User_{user.id}"
+    
+    # URL编码用户信息，确保特殊字符正确处理
+    encoded_user_name = urllib.parse.quote(user_name, safe='')
+    encoded_user_id = str(user.id)
+    
+    # 构建完整的游戏URL，包含用户姓名和ID参数
+    game_url_with_params = f"{GAME_URL}?name={encoded_user_name}&id={encoded_user_id}"
+    
+    logger.info("🔐 构建带有用户信息的游戏URL")
+    logger.info(f"   - 原始URL: {GAME_URL}")
+    logger.info(f"   - 用户姓名: {user_name}")
+    logger.info(f"   - 用户ID: {user.id}")
+    logger.info(f"   - 编码后姓名: {encoded_user_name}")
+    logger.info(f"   - 完整URL: {game_url_with_params}")
+    
+    # 玩家点击游戏入口时，返回带有用户信息的游戏URL
     await context.bot.answer_callback_query(
         callback_query_id=query.id,
-        url=GAME_URL
+        url=game_url_with_params
     )
     
-    logger.info("✅ 游戏URL已发送给玩家（使用 initData 模式）")
+    logger.info("✅ 游戏URL已发送给玩家（包含用户姓名和ID参数）")
     logger.info("=" * 50)
 
 # ====== 3. 主函数 ======
